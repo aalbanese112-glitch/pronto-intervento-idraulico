@@ -28,3 +28,10 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Site architecture
+
+- Keep this showcase on the index route with section anchors, because it is intentionally a single-page website.
+- Keep contact configuration, service data, covered towns and WhatsApp message helpers in `src/lib/plumber.ts` so contact actions share one recipient and the request logic can be tested.
+- Use browser-only contact actions with no persistence or backend; form details go directly into a WhatsApp link and are never saved by this website.
+- Keep visual roles, responsive layouts and button variants in the global design system; compress illustrative imagery to WebP and identify provisional photos and reviews until authentic materials are supplied.
