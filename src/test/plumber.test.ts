@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildRequestMessage,
+  business,
   getTelephoneUrl,
   getWhatsappUrl,
   normalizePhone,
@@ -56,6 +57,11 @@ describe("Plumber contact actions", () => {
   it("requires a problem description", () => {
     expect(validateRequest({ ...request, problem: "" }).problem).toBeDefined();
     expect(validateRequest(request).problem).toBeUndefined();
+  });
+
+  it("shows the eleven-digit VAT number supplied by the business", () => {
+    expect(business.vat).toBe("00000000000");
+    expect(/^\d{11}$/.test(business.vat)).toBe(true);
   });
 
   it("offers exactly six services with a starting price", () => {

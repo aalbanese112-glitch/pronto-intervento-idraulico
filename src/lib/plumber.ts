@@ -3,7 +3,7 @@ export const business = {
   city: "Bari",
   phone: "",
   phoneDisplay: "080 XXX XXXX",
-  vat: "Da inserire",
+  vat: "00000000000",
   regularHours: "Lun–Sab · 8:00–19:00",
   emergencyHours: "Pronto intervento · 24 ore su 24",
 } as const;
