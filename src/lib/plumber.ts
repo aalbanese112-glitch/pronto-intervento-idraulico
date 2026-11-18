@@ -1,8 +1,8 @@
 export const business = {
   name: "IDRO BARI",
   city: "Bari",
-  phone: "",
-  phoneDisplay: "080 XXX XXXX",
+  phone: "080 000 0000",
+  phoneDisplay: "080 000 0000",
   vat: "00000000000",
   regularHours: "Lun–Sab · 8:00–19:00",
   emergencyHours: "Pronto intervento · 24 ore su 24",
@@ -106,6 +106,12 @@ export const GENERIC_IMPIANTO = "l’impianto idraulico";
 /** Scritta che ricorda che il sito è una demo: WhatsApp si apre senza destinatario già inserito. */
 export const DEMO_NOTE =
   "Demo: si apre WhatsApp con il messaggio già scritto, il destinatario lo scegli tu";
+
+/** Fascia sottile in cima alla pagina, sempre visibile. */
+export const DEMO_BANNER = "SITO DEMOSTRATIVO — dati e numero di telefono fittizi";
+
+/** Riga di riepilogo in fondo al footer: nome, natura demo, P.IVA, zona e telefono fittizio. */
+export const DEMO_FOOTER_LINE = `Bari Pronto Idraulico · demo dimostrativa · P.IVA ${business.vat} · Bari e provincia · ${business.phoneDisplay}`;
 
 export type ContactRequest = {
   name: string;

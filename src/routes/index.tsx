@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type MouseEvent, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   ArrowRight,
@@ -28,6 +28,8 @@ import {
   business,
   buildRequestMessage,
   buildWhatsappMessage,
+  DEMO_BANNER,
+  DEMO_FOOTER_LINE,
   DEMO_NOTE,
   GENERIC_IMPIANTO,
   getTelephoneUrl,
@@ -77,13 +79,8 @@ const iconMap = {
 function Index() {
   const [selectedTown, setSelectedTown] = useState("Bari");
   const [initialImpianto, setInitialImpianto] = useState<string>(GENERIC_IMPIANTO);
-  const [dialog, setDialog] = useState<"contact" | "privacy" | null>(null);
+  const [dialog, setDialog] = useState<"privacy" | null>(null);
   const telephoneUrl = getTelephoneUrl(business.phone);
-
-  function missingContact(event?: MouseEvent<HTMLAnchorElement>) {
-    event?.preventDefault();
-    setDialog("contact");
-  }
 
   function selectTown(town: string) {
     setSelectedTown(town);
@@ -116,12 +113,11 @@ function Index() {
     const whatsapp = type === "whatsapp";
     const href = whatsapp
       ? getWhatsappUrl(buildWhatsappMessage({ impianto, town: selectedTown }))
-      : telephoneUrl || "#contatti";
+      : telephoneUrl;
     return (
       <Button asChild variant={variant} size="contact" className={className}>
         <a
           href={href}
-          onClick={whatsapp || telephoneUrl ? undefined : missingContact}
           target={whatsapp ? "_blank" : undefined}
           rel={whatsapp ? "noopener noreferrer" : undefined}
         >
@@ -137,6 +133,7 @@ function Index() {
       <a href="#contenuto" className="skip-link">
         Vai al contenuto
       </a>
+      <p className="demo-banner">{DEMO_BANNER}</p>
       <header id="inizio" className="bg-background">
         <div className="site-container header-layout">
           <Brand />
@@ -148,8 +145,7 @@ function Index() {
           <div className="header-contact">
             <a
               className="header-phone"
-              href={telephoneUrl || "#contatti"}
-              onClick={telephoneUrl ? undefined : missingContact}
+              href={telephoneUrl}
               aria-label={`Chiama ${business.name}: ${business.phoneDisplay}`}
             >
               <Phone className="size-5" strokeWidth={2.3} />
@@ -398,17 +394,10 @@ function Index() {
                   Per un’urgenza, meglio una telefonata
                 </li>
               </ul>
-              <a
-                className="contact-phone"
-                href={telephoneUrl || "#contatti"}
-                onClick={telephoneUrl ? undefined : missingContact}
-              >
+              <a className="contact-phone" href={telephoneUrl}>
                 <Phone className="size-6" />
                 {business.phoneDisplay}
               </a>
-              {!telephoneUrl && (
-                <p className="text-xs text-muted-foreground">Numero dell’attività da inserire.</p>
-              )}
             </div>
             <RequestForm
               town={selectedTown}
@@ -442,11 +431,7 @@ function Index() {
             </div>
             <div>
               <h2 className="footer-title">Parla direttamente con noi</h2>
-              <a
-                href={telephoneUrl || "#contatti"}
-                onClick={telephoneUrl ? undefined : missingContact}
-                className="flex items-center gap-2 text-lg font-bold"
-              >
+              <a href={telephoneUrl} className="flex items-center gap-2 text-lg font-bold">
                 <Phone className="size-4" />
                 {business.phoneDisplay}
               </a>
@@ -459,6 +444,7 @@ function Index() {
               Informativa privacy
             </Button>
           </div>
+          <p className="footer-demo-line">{DEMO_FOOTER_LINE}</p>
         </div>
       </footer>
 
@@ -481,27 +467,23 @@ function Index() {
         <Dialog.Portal>
           <Dialog.Overlay className="lightbox-overlay" />
           <Dialog.Content className="lightbox-content">
-            <Dialog.Title className="lightbox-heading pr-12">
-              {dialog === "privacy" ? "Informativa privacy" : "Recapito da confermare"}
-            </Dialog.Title>
+            <Dialog.Title className="lightbox-heading pr-12">Informativa privacy</Dialog.Title>
             <Dialog.Description className="mt-2 text-base text-muted-foreground">
-              {dialog === "privacy"
-                ? "I dati inseriti nel modulo vengono usati esclusivamente per comporre il messaggio da inviare su WhatsApp. Questo sito non li archivia e non li invia automaticamente. Sei tu a decidere se inviare il messaggio."
-                : "Il numero di telefono dell’attività non è stato ancora inserito, quindi la chiamata non è attiva. Il messaggio WhatsApp si apre comunque: il destinatario lo scegli tu."}
+              I dati inseriti nel modulo vengono usati esclusivamente per comporre il messaggio da
+              inviare su WhatsApp. Questo sito non li archivia e non li invia automaticamente. Sei
+              tu a decidere se inviare il messaggio.
             </Dialog.Description>
-            {dialog === "privacy" && (
-              <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                <p>
-                  Aprendo WhatsApp si applicano l’informativa e le condizioni del servizio. I
-                  caratteri del sito vengono caricati da Google Fonts, che riceve i dati tecnici
-                  necessari alla richiesta.
-                </p>
-                <p>
-                  Titolare e recapiti per le richieste relative ai dati: da completare con i dati
-                  effettivi dell’attività prima della pubblicazione.
-                </p>
-              </div>
-            )}
+            <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+              <p>
+                Aprendo WhatsApp si applicano l’informativa e le condizioni del servizio. I
+                caratteri del sito vengono caricati da Google Fonts, che riceve i dati tecnici
+                necessari alla richiesta.
+              </p>
+              <p>
+                Titolare e recapiti per le richieste relative ai dati: da completare con i dati
+                effettivi dell’attività prima della pubblicazione.
+              </p>
+            </div>
             <Dialog.Close asChild>
               <Button
                 variant="lightbox"

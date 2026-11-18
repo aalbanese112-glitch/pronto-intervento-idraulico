@@ -80,9 +80,11 @@ describe("Plumber site data", () => {
     expect(normalizePhone("+39 333 123 4567")).toBe("393331234567");
   });
 
-  it("does not invent a contact number when it is missing", () => {
+  it("uses the fictitious demo number, linked with the Italian prefix", () => {
+    expect(business.phone).toBe("080 000 0000");
+    expect(business.phoneDisplay).toBe("080 000 0000");
+    expect(getTelephoneUrl(business.phone)).toBe("tel:+390800000000");
     expect(getTelephoneUrl("")).toBeUndefined();
-    expect(business.phone).toBe("");
   });
 
   it("requires a name before preparing the request", () => {
