@@ -28,6 +28,8 @@ import { RequestForm } from "@/components/plumber/request-form";
 import {
   business,
   buildRequestMessage,
+  buildWhatsappMessage,
+  GENERIC_IMPIANTO,
   getTelephoneUrl,
   getWhatsappUrl,
   reviews,
@@ -71,12 +73,10 @@ const iconMap = {
   bath: Bath,
   settings: Settings2,
 };
-const defaultMessage =
-  "Buongiorno, avrei bisogno di un intervento idraulico a Bari. Potete indicarmi disponibilità e costo indicativo? Grazie.";
 
 function Index() {
   const [selectedTown, setSelectedTown] = useState("Bari");
-  const [initialProblem, setInitialProblem] = useState("");
+  const [initialImpianto, setInitialImpianto] = useState<string>(GENERIC_IMPIANTO);
   const [dialog, setDialog] = useState<"contact" | "privacy" | null>(null);
   const [draftMessage, setDraftMessage] = useState("");
   const [copied, setCopied] = useState(false);
@@ -94,21 +94,22 @@ function Index() {
     document.getElementById("contatti")?.scrollIntoView({ behavior: "instant", block: "start" });
   }
 
-  function selectService(title: string) {
-    setInitialProblem(`Avrei bisogno di un intervento per: ${title.toLowerCase()}. `);
+  function selectService(service: (typeof services)[number]) {
+    setInitialImpianto(service.impianto);
     document.getElementById("contatti")?.scrollIntoView({ behavior: "instant", block: "start" });
     document.getElementById("request-problem")?.focus({ preventScroll: true });
   }
 
   function submitRequest(request: ContactRequest) {
     const message = buildRequestMessage(request);
-    if (!business.phone) {
+    const url = getWhatsappUrl(business.phone, message);
+    if (!url) {
       setDraftMessage(message);
       setCopied(false);
       setDialog("contact");
       return;
     }
-    window.open(getWhatsappUrl(business.phone, message), "_blank", "noopener,noreferrer");
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   async function copyMessage() {
@@ -125,24 +126,31 @@ function Index() {
     children,
     variant,
     className,
+    impianto,
   }: {
     type: "call" | "whatsapp";
     children: ReactNode;
     variant: "call" | "whatsapp" | "heroOutline";
     className?: string;
+    impianto?: string;
   }) {
+    const whatsappUrl = getWhatsappUrl(
+      business.phone,
+      buildWhatsappMessage({ impianto, town: selectedTown }),
+    );
     const href = telephoneUrl
       ? type === "call"
         ? telephoneUrl
-        : getWhatsappUrl(business.phone, defaultMessage)
+        : whatsappUrl || "#contatti"
       : "#contatti";
+    const ready = type === "call" ? Boolean(telephoneUrl) : Boolean(whatsappUrl);
     return (
       <Button asChild variant={variant} size="contact" className={className}>
         <a
           href={href}
-          onClick={telephoneUrl ? undefined : missingContact}
-          target={type === "whatsapp" && telephoneUrl ? "_blank" : undefined}
-          rel={type === "whatsapp" && telephoneUrl ? "noopener noreferrer" : undefined}
+          onClick={ready ? undefined : missingContact}
+          target={type === "whatsapp" && whatsappUrl ? "_blank" : undefined}
+          rel={type === "whatsapp" && whatsappUrl ? "noopener noreferrer" : undefined}
         >
           {type === "call" ? <Phone /> : <WhatsappIcon />}
           {children}
@@ -288,7 +296,7 @@ function Index() {
                         size="smallIcon"
                         aria-label={`Richiedi: ${service.title}`}
                         title={`Richiedi ${service.title.toLowerCase()}`}
-                        onClick={() => selectService(service.title)}
+                        onClick={() => selectService(service)}
                       >
                         <ArrowRight />
                       </Button>
@@ -430,7 +438,7 @@ function Index() {
             </div>
             <RequestForm
               town={selectedTown}
-              initialProblem={initialProblem}
+              initialImpianto={initialImpianto}
               onSubmit={submitRequest}
             />
           </div>

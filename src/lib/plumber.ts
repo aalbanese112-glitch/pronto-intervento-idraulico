@@ -31,6 +31,7 @@ export const services = [
       "Rubinetti che gocciolano, tubi rotti e infiltrazioni. Troviamo la perdita e la fermiamo.",
     price: 60,
     icon: "droplet",
+    impianto: "una perdita d’acqua",
   },
   {
     id: "scarichi",
@@ -39,6 +40,7 @@ export const services = [
       "Lavandino, doccia o WC intasato? Liberiamo lo scarico e rimettiamo tutto in funzione.",
     price: 80,
     icon: "waves",
+    impianto: "uno scarico intasato",
   },
   {
     id: "rubinetti",
@@ -47,6 +49,7 @@ export const services = [
       "Sostituzione e riparazione di rubinetti in cucina e in bagno, senza perdite e sprechi.",
     price: 50,
     icon: "wrench",
+    impianto: "un rubinetto che perde",
   },
   {
     id: "caldaie",
@@ -55,6 +58,7 @@ export const services = [
       "Acqua fredda o caldaia in blocco? Controllo del guasto e ripristino dell’acqua calda.",
     price: 90,
     icon: "flame",
+    impianto: "la caldaia",
   },
   {
     id: "sanitari",
@@ -62,6 +66,7 @@ export const services = [
     description: "Ripariamo scarichi che continuano a scorrere e sostituiamo sanitari e cassette.",
     price: 70,
     icon: "bath",
+    impianto: "la cassetta del WC",
   },
   {
     id: "impianti",
@@ -70,6 +75,7 @@ export const services = [
       "Piccoli e grandi lavori su impianti idraulici, termosifoni e collegamenti della casa.",
     price: 100,
     icon: "settings",
+    impianto: "l’impianto idraulico di casa",
   },
 ] as const;
 
@@ -94,15 +100,30 @@ export const reviews = [
   },
 ] as const;
 
-export type ContactRequest = { name: string; phone: string; problem: string; town?: string };
+/** Frase usata quando l’impianto non è stato scelto: "ho un problema con l’impianto idraulico a Bari". */
+export const GENERIC_IMPIANTO = "l’impianto idraulico";
+
+export type ContactRequest = {
+  name: string;
+  phone: string;
+  problem: string;
+  town?: string;
+  impianto?: string;
+};
 export type ContactErrors = Partial<Record<"name" | "phone" | "problem", string>>;
 
+/** Restituisce il numero in sole cifre con prefisso 39, vuoto se non riconosciuto. */
 export function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return "";
-  if (phone.trim().startsWith("00")) return digits.slice(2);
-  if (phone.trim().startsWith("+")) return digits;
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length < 8) return "";
+  if (trimmed.startsWith("00")) return digits.slice(2);
+  if (trimmed.startsWith("+")) return digits;
   return `39${digits}`;
+}
+
+export function isValidWhatsappNumber(phone: string): boolean {
+  return /^39\d{8,13}$/.test(normalizePhone(phone));
 }
 
 export function getTelephoneUrl(phone: string): string | undefined {
@@ -110,18 +131,36 @@ export function getTelephoneUrl(phone: string): string | undefined {
   return number ? `tel:+${number}` : undefined;
 }
 
-export function getWhatsappUrl(phone: string, message: string): string {
+/**
+ * Unico formato per tutti i link WhatsApp del sito:
+ * https://wa.me/39NUMERO?text=... con il numero in sole cifre.
+ */
+export function getWhatsappUrl(phone: string, message: string): string | undefined {
+  if (!isValidWhatsappNumber(phone)) return undefined;
   return `https://wa.me/${normalizePhone(phone)}?text=${encodeURIComponent(message)}`;
 }
 
+/** Messaggio standard: "Buongiorno, ho un problema con [impianto] a [paese]. Potete intervenire oggi?" */
+export function buildWhatsappMessage({
+  impianto,
+  town,
+}: { impianto?: string | undefined; town?: string | undefined } = {}): string {
+  const system = impianto?.trim() || GENERIC_IMPIANTO;
+  const place = town?.trim() || business.city;
+  return `Buongiorno, ho un problema con ${system} a ${place}. Potete intervenire oggi?`;
+}
+
+/** Messaggio del modulo: la frase standard in cima, poi i dati scritti dal cliente. */
 export function buildRequestMessage(request: ContactRequest): string {
-  return [
-    `Buongiorno, sono ${request.name.trim()}.`,
-    `Vorrei richiedere un intervento idraulico a ${request.town || business.city}.`,
-    `Il mio numero è ${request.phone.trim()}.`,
-    `Problema: ${request.problem.trim()}`,
-    "Potete indicarmi disponibilità e costo indicativo? Grazie.",
-  ].join("\n");
+  const lines = [
+    buildWhatsappMessage({ impianto: request.impianto, town: request.town }),
+    "",
+    `Nome: ${request.name.trim()}`,
+    `Telefono: ${request.phone.trim()}`,
+  ];
+  const details = request.problem.trim();
+  if (details) lines.push(`Dettagli: ${details}`);
+  return lines.join("\n");
 }
 
 export function validateRequest(request: ContactRequest): ContactErrors {

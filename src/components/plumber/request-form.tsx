@@ -2,15 +2,23 @@ import { useState, type FormEvent } from "react";
 import { LockKeyhole, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WhatsappIcon } from "./whatsapp-icon";
-import { validateRequest, type ContactErrors, type ContactRequest } from "@/lib/plumber";
+import {
+  GENERIC_IMPIANTO,
+  services,
+  validateRequest,
+  type ContactErrors,
+  type ContactRequest,
+} from "@/lib/plumber";
 
 export function RequestForm({
   town,
-  initialProblem,
+  initialProblem = "",
+  initialImpianto = GENERIC_IMPIANTO,
   onSubmit,
 }: {
   town: string;
-  initialProblem: string;
+  initialProblem?: string;
+  initialImpianto?: string;
   onSubmit: (request: ContactRequest) => void;
 }) {
   const [errors, setErrors] = useState<ContactErrors>({});
@@ -22,6 +30,7 @@ export function RequestForm({
       name: String(data.get("name") || ""),
       phone: String(data.get("phone") || ""),
       problem: String(data.get("problem") || ""),
+      impianto: String(data.get("impianto") || GENERIC_IMPIANTO),
       town,
     };
     const nextErrors = validateRequest(request);
@@ -84,15 +93,34 @@ export function RequestForm({
         </div>
       </div>
       <div>
+        <label className="form-label" htmlFor="request-impianto">
+          Su cosa è il problema?
+        </label>
+        <select
+          className="form-input"
+          id="request-impianto"
+          name="impianto"
+          key={initialImpianto}
+          defaultValue={initialImpianto}
+        >
+          <option value={GENERIC_IMPIANTO}>L’impianto idraulico (altro)</option>
+          {services.map((service) => (
+            <option key={service.id} value={service.impianto}>
+              {service.title}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
         <label className="form-label" htmlFor="request-problem">
-          Che problema hai?
+          Raccontaci il problema
         </label>
         <textarea
           key={initialProblem}
           className="form-input"
           id="request-problem"
           name="problem"
-          placeholder="Es. Perde acqua sotto il lavello della cucina. Sono a Bari, zona Carrassi."
+          placeholder="Es. Perde acqua sotto il lavello della cucina da ieri sera."
           defaultValue={initialProblem}
           required
           maxLength={2000}

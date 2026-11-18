@@ -5,6 +5,7 @@
 - [x] Preparare chiamate, WhatsApp e richiesta precompilata senza backend; nessun recapito inventato.
 - [x] Preparare sei immagini WebP leggere e una galleria accessibile.
 - [x] Verificare composizione del messaggio, controlli del modulo, galleria e visualizzazione a 320, 390, 768, 1280 e 1440 px.
+- [x] Uniformare tutti i link WhatsApp a `wa.me/39NUMERO?text=` con la frase standard "Buongiorno, ho un problema con [impianto] a [paese]. Potete intervenire oggi?" e il numero in sole cifre con prefisso 39.
 - [ ] Attivare e verificare l’apertura verso il numero reale su WhatsApp e tel. In attesa del telefono dell’attività.
 - [ ] Sostituire nome provvisorio e confermare orari, prezzi e copertura. In attesa del nome dell’attività.
 - [ ] Inserire sei foto autentiche e tre recensioni autentiche. In attesa dei materiali.
