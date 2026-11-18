@@ -103,6 +103,10 @@ export const reviews = [
 /** Frase usata quando l’impianto non è stato scelto: "ho un problema con l’impianto idraulico a Bari". */
 export const GENERIC_IMPIANTO = "l’impianto idraulico";
 
+/** Scritta che ricorda che il sito è una demo: WhatsApp si apre senza destinatario già inserito. */
+export const DEMO_NOTE =
+  "Demo: si apre WhatsApp con il messaggio già scritto, il destinatario lo scegli tu";
+
 export type ContactRequest = {
   name: string;
   phone: string;
@@ -122,22 +126,18 @@ export function normalizePhone(phone: string): string {
   return `39${digits}`;
 }
 
-export function isValidWhatsappNumber(phone: string): boolean {
-  return /^39\d{8,13}$/.test(normalizePhone(phone));
-}
-
 export function getTelephoneUrl(phone: string): string | undefined {
   const number = normalizePhone(phone);
   return number ? `tel:+${number}` : undefined;
 }
 
 /**
- * Unico formato per tutti i link WhatsApp del sito:
- * https://wa.me/39NUMERO?text=... con il numero in sole cifre.
+ * Unico formato per tutti i link WhatsApp del sito demo:
+ * https://wa.me/?text=... senza destinatario, con il messaggio codificato in URL.
+ * Qui non compare nessun numero di telefono.
  */
-export function getWhatsappUrl(phone: string, message: string): string | undefined {
-  if (!isValidWhatsappNumber(phone)) return undefined;
-  return `https://wa.me/${normalizePhone(phone)}?text=${encodeURIComponent(message)}`;
+export function getWhatsappUrl(message: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
 /** Messaggio standard: "Buongiorno, ho un problema con [impianto] a [paese]. Potete intervenire oggi?" */

@@ -327,6 +327,10 @@
     gap: 12px;
     margin-top: 27px;
   }
+  .hero-content .wa-demo-note {
+    margin-top: 9px;
+    color: var(--on-ink-muted);
+  }
   .hero-reassurance {
     display: flex;
     align-items: center;
@@ -629,6 +633,12 @@
   textarea.form-input {
     resize: vertical;
     min-height: 121px;
+  }
+  .wa-demo-note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--muted-foreground);
   }
   .form-note {
     display: flex;
@@ -965,6 +975,12 @@
   .mobile-contact-bar > * {
     min-width: 0;
     padding-inline: 12px;
+  }
+  .mobile-contact-bar > .wa-demo-note {
+    grid-column: 1 / -1;
+    margin-top: -5px;
+    font-size: 10px;
+    text-align: center;
   }
   .request-submit {
     padding-inline: 12px;

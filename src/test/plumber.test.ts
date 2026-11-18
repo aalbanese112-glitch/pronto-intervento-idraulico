@@ -6,17 +6,33 @@ import {
   GENERIC_IMPIANTO,
   getTelephoneUrl,
   getWhatsappUrl,
-  isValidWhatsappNumber,
   normalizePhone,
   services,
   towns,
   validateRequest,
 } from "@/lib/plumber";
 
-describe("WhatsApp links", () => {
-  it("builds the standard message with the plant and the town", () => {
-    expect(buildWhatsappMessage({ impianto: "la caldaia", town: "Modugno" })).toBe(
-      "Buongiorno, ho un problema con la caldaia a Modugno. Potete intervenire oggi?",
+describe("WhatsApp demo links", () => {
+  it("uses the click-to-chat link without any recipient", () => {
+    const url = new URL(getWhatsappUrl(buildWhatsappMessage({ impianto: "la caldaia" })));
+    expect(url.origin).toBe("https://wa.me");
+    expect(url.pathname).toBe("/");
+    expect(url.href).toMatch(/^https:\/\/wa\.me\/\?text=/);
+    expect(url.href).not.toMatch(/wa\.me\/\d/);
+  });
+
+  it("keeps the standard sentence as the pre-written message", () => {
+    const text = new URL(
+      getWhatsappUrl(buildWhatsappMessage({ town: "Modugno" })),
+    ).searchParams.get("text");
+    expect(text).toBe(
+      "Buongiorno, ho un problema con l’impianto idraulico a Modugno. Potete intervenire oggi?",
+    );
+  });
+
+  it("writes the message exactly as supplied by the business", () => {
+    expect(buildWhatsappMessage({ impianto: "la caldaia", town: "Brescia" })).toBe(
+      "Buongiorno, ho un problema con la caldaia a Brescia. Potete intervenire oggi?",
     );
   });
 
@@ -27,42 +43,14 @@ describe("WhatsApp links", () => {
     expect(buildWhatsappMessage({ impianto: "  ", town: "" })).toContain(GENERIC_IMPIANTO);
   });
 
-  it("uses wa.me/39NUMERO?text= with the number in digits only", () => {
-    const url = new URL(
-      getWhatsappUrl("+39 080 123 4567", buildWhatsappMessage({ town: "Bitonto" })) || "",
-    );
-    expect(url.origin).toBe("https://wa.me");
-    expect(url.pathname).toBe("/390801234567");
-    expect(url.pathname).toMatch(/^\/39\d+$/);
-    expect(url.searchParams.get("text")).toBe(
-      "Buongiorno, ho un problema con l’impianto idraulico a Bitonto. Potete intervenire oggi?",
-    );
-  });
-
-  it("normalizes every written form to digits with the 39 prefix", () => {
-    expect(normalizePhone("333 123 4567")).toBe("393331234567");
-    expect(normalizePhone("+39 333 123 4567")).toBe("393331234567");
-    expect(normalizePhone("0039 080 123 4567")).toBe("390801234567");
-    expect(normalizePhone("(080) 123-4567")).toBe("390801234567");
-    expect(isValidWhatsappNumber("39 333 123 4567")).toBe(true);
-  });
-
-  it("does not build a WhatsApp link without a real number", () => {
-    expect(getWhatsappUrl("", buildWhatsappMessage())).toBeUndefined();
-    expect(getWhatsappUrl("080 XXX XXXX", buildWhatsappMessage())).toBeUndefined();
-    expect(isValidWhatsappNumber("12345")).toBe(false);
+  it("leaves the recipient empty even when the message holds a phone number", () => {
+    const href = getWhatsappUrl(buildRequestMessage({ ...request }));
+    expect(href.split("?")[0]).toBe("https://wa.me/");
+    expect(new URL(href).pathname).toBe("/");
   });
 });
 
 describe("Form request", () => {
-  const request = {
-    name: " Alessio ",
-    phone: "333 123 4567",
-    problem: " Perde acqua sotto il lavello della cucina ",
-    town: "Modugno",
-    impianto: "una perdita d’acqua",
-  };
-
   it("opens with the standard sentence and keeps the customer data", () => {
     expect(buildRequestMessage(request)).toBe(
       "Buongiorno, ho un problema con una perdita d’acqua a Modugno. Potete intervenire oggi?\n" +
@@ -86,19 +74,15 @@ describe("Form request", () => {
 });
 
 describe("Plumber site data", () => {
-  const request = {
-    name: " Alessio ",
-    phone: "333 123 4567",
-    problem: " Perdita sotto il lavello ",
-    town: "Modugno",
-  };
-
   it("produces clickable telephone links with the Italian prefix", () => {
     expect(getTelephoneUrl("080 123 4567")).toBe("tel:+390801234567");
+    expect(normalizePhone("0039 080 123 4567")).toBe("390801234567");
+    expect(normalizePhone("+39 333 123 4567")).toBe("393331234567");
   });
 
   it("does not invent a contact number when it is missing", () => {
     expect(getTelephoneUrl("")).toBeUndefined();
+    expect(business.phone).toBe("");
   });
 
   it("requires a name before preparing the request", () => {
@@ -132,3 +116,11 @@ describe("Plumber site data", () => {
     expect(new Set(towns).size).toBe(12);
   });
 });
+
+const request = {
+  name: " Alessio ",
+  phone: "333 123 4567",
+  problem: " Perde acqua sotto il lavello della cucina ",
+  town: "Modugno",
+  impianto: "una perdita d’acqua",
+};

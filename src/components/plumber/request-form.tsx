@@ -3,6 +3,7 @@ import { LockKeyhole, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WhatsappIcon } from "./whatsapp-icon";
 import {
+  DEMO_NOTE,
   GENERIC_IMPIANTO,
   services,
   validateRequest,
@@ -142,6 +143,7 @@ export function RequestForm({
       <Button variant="whatsapp" size="contact" type="submit" className="request-submit w-full">
         <WhatsappIcon /> Invia richiesta su WhatsApp
       </Button>
+      <p className="wa-demo-note">{DEMO_NOTE}</p>
       <p className="form-note">
         <LockKeyhole className="mt-0.5 size-3.5 shrink-0" />
         <span>

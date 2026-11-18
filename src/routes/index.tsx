@@ -7,7 +7,6 @@ import {
   Check,
   CheckCheck,
   Clock3,
-  Copy,
   Droplet,
   Flame,
   Info,
@@ -29,6 +28,7 @@ import {
   business,
   buildRequestMessage,
   buildWhatsappMessage,
+  DEMO_NOTE,
   GENERIC_IMPIANTO,
   getTelephoneUrl,
   getWhatsappUrl,
@@ -78,14 +78,10 @@ function Index() {
   const [selectedTown, setSelectedTown] = useState("Bari");
   const [initialImpianto, setInitialImpianto] = useState<string>(GENERIC_IMPIANTO);
   const [dialog, setDialog] = useState<"contact" | "privacy" | null>(null);
-  const [draftMessage, setDraftMessage] = useState("");
-  const [copied, setCopied] = useState(false);
   const telephoneUrl = getTelephoneUrl(business.phone);
 
   function missingContact(event?: MouseEvent<HTMLAnchorElement>) {
     event?.preventDefault();
-    setCopied(false);
-    setDraftMessage("");
     setDialog("contact");
   }
 
@@ -101,24 +97,7 @@ function Index() {
   }
 
   function submitRequest(request: ContactRequest) {
-    const message = buildRequestMessage(request);
-    const url = getWhatsappUrl(business.phone, message);
-    if (!url) {
-      setDraftMessage(message);
-      setCopied(false);
-      setDialog("contact");
-      return;
-    }
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-
-  async function copyMessage() {
-    try {
-      await navigator.clipboard.writeText(draftMessage);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
+    window.open(getWhatsappUrl(buildRequestMessage(request)), "_blank", "noopener,noreferrer");
   }
 
   function ContactLink({
@@ -134,23 +113,17 @@ function Index() {
     className?: string;
     impianto?: string;
   }) {
-    const whatsappUrl = getWhatsappUrl(
-      business.phone,
-      buildWhatsappMessage({ impianto, town: selectedTown }),
-    );
-    const href = telephoneUrl
-      ? type === "call"
-        ? telephoneUrl
-        : whatsappUrl || "#contatti"
-      : "#contatti";
-    const ready = type === "call" ? Boolean(telephoneUrl) : Boolean(whatsappUrl);
+    const whatsapp = type === "whatsapp";
+    const href = whatsapp
+      ? getWhatsappUrl(buildWhatsappMessage({ impianto, town: selectedTown }))
+      : telephoneUrl || "#contatti";
     return (
       <Button asChild variant={variant} size="contact" className={className}>
         <a
           href={href}
-          onClick={ready ? undefined : missingContact}
-          target={type === "whatsapp" && whatsappUrl ? "_blank" : undefined}
-          rel={type === "whatsapp" && whatsappUrl ? "noopener noreferrer" : undefined}
+          onClick={whatsapp || telephoneUrl ? undefined : missingContact}
+          target={whatsapp ? "_blank" : undefined}
+          rel={whatsapp ? "noopener noreferrer" : undefined}
         >
           {type === "call" ? <Phone /> : <WhatsappIcon />}
           {children}
@@ -230,6 +203,7 @@ function Index() {
                   Chiama adesso
                 </ContactLink>
               </div>
+              <p className="wa-demo-note">{DEMO_NOTE}</p>
               <p className="hero-reassurance hidden md:flex">
                 <ShieldCheck className="size-4 text-amber shrink-0" />
                 Il prezzo lo concordiamo prima di iniziare. Sempre.
@@ -495,6 +469,7 @@ function Index() {
         <ContactLink type="whatsapp" variant="whatsapp">
           WhatsApp
         </ContactLink>
+        <p className="wa-demo-note">{DEMO_NOTE}</p>
       </nav>
 
       <Dialog.Root
@@ -512,7 +487,7 @@ function Index() {
             <Dialog.Description className="mt-2 text-base text-muted-foreground">
               {dialog === "privacy"
                 ? "I dati inseriti nel modulo vengono usati esclusivamente per comporre il messaggio da inviare su WhatsApp. Questo sito non li archivia e non li invia automaticamente. Sei tu a decidere se inviare il messaggio."
-                : "Il numero di telefono dell’attività non è stato ancora inserito. Chiamate e invio su WhatsApp saranno disponibili appena verrà confermato."}
+                : "Il numero di telefono dell’attività non è stato ancora inserito, quindi la chiamata non è attiva. Il messaggio WhatsApp si apre comunque: il destinatario lo scegli tu."}
             </Dialog.Description>
             {dialog === "privacy" && (
               <div className="mt-4 space-y-3 text-sm text-muted-foreground">
@@ -525,30 +500,6 @@ function Index() {
                   Titolare e recapiti per le richieste relative ai dati: da completare con i dati
                   effettivi dell’attività prima della pubblicazione.
                 </p>
-              </div>
-            )}
-            {dialog === "contact" && draftMessage && (
-              <div className="mt-5">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-bold">Il tuo messaggio è pronto</h3>
-                  <Button
-                    variant="outline"
-                    size="smallIcon"
-                    onClick={copyMessage}
-                    aria-label={copied ? "Messaggio copiato" : "Copia messaggio"}
-                    title={copied ? "Copiato" : "Copia messaggio"}
-                  >
-                    {copied ? <Check /> : <Copy />}
-                  </Button>
-                </div>
-                <p className="mt-3 whitespace-pre-wrap border-l-2 border-primary pl-4 text-sm">
-                  {draftMessage}
-                </p>
-                {copied && (
-                  <p role="status" className="mt-2 text-xs text-whatsapp">
-                    Messaggio copiato.
-                  </p>
-                )}
               </div>
             )}
             <Dialog.Close asChild>
